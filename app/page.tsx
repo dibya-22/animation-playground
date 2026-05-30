@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutGrid, GitBranch, AtSign } from "lucide-react";
+import { LayoutGrid, GitBranch, AtSign, CodeXml } from "lucide-react";
 
 export default function Home() {
   return (
@@ -25,21 +25,19 @@ export default function Home() {
         <div className="mt-8 flex flex-wrap items-center gap-2.5">
           <Link
             href="/playground"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md border border-border bg-card text-card-foreground text-base hover:bg-accent hover:border-ring hover:text-accent-foreground transition-all whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md border border-border/90 bg-card-foreground text-background text-base hover:bg-accent-foreground hover:border-ring hover:text-shadow-accent-foreground transition-all whitespace-nowrap"
           >
             <LayoutGrid size={16} />
             Check animation components
           </Link>
 
           <Link
-            href="https://github.com/dibya-22/animation-playground"
+            href="https://github.com/dibya-22/animation-playground/tree/main/components/playground"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md border border-border bg-card text-card-foreground text-base hover:bg-accent hover:border-ring hover:text-accent-foreground transition-all whitespace-nowrap"
           >
-            <GitBranch size={16} />
+            <CodeXml size={16} />
             Component code
           </Link>
-
-          <div className="hidden sm:block w-px h-5 bg-border mx-0.5" />
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Link
