@@ -2,10 +2,21 @@
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useLayoutEffect, useState } from "react";
 
 export function ThemeSwitcher() {
     const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useLayoutEffect(() => {
+        (() => setMounted(true))();
+    }, []);
+
     const isDark = theme === "dark";
+
+    if (!mounted) {
+        return <div className="h-9 w-9" />;
+    }
 
     return (
         <motion.button
