@@ -3,7 +3,7 @@ import { LayoutGrid, GitBranch, AtSign, CodeXml } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-8 py-12 sm:py-16">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-8 pt-12 md:pt-16 pb-16 md:pb-4">
       <div className="max-w-2xl w-full">
         <h1 className="text-3xl sm:text-[38px] font-medium tracking-tight leading-snug mb-6 sm:mb-8">
           Hello I am{" "}
