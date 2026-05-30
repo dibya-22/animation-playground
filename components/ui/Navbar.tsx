@@ -26,7 +26,8 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="flex fixed top-0 z-50 h-16 w-full items-center justify-between border-b border-border bg-background/80 px-10 backdrop-blur-sm">
+            {/* Desktop Navbar */}
+            <nav className="hidden md:flex fixed top-0 z-50 h-16 w-full items-center justify-between border-b border-border bg-background/80 px-10 backdrop-blur-sm">
                 <div className="font-medium">
                     Dibya&#39;s Playground
                 </div>
@@ -84,6 +85,60 @@ const Navbar = () => {
                     </li>
                 </ul>
             </nav>
+
+
+            {/* Mobile Top Navbar */}
+            <nav className="flex md:hidden fixed top-0 z-50 h-12 w-full items-center justify-between border-b border-border bg-background/80 px-10 backdrop-blur-sm">
+            <div className="font-medium">
+                    Dibya&#39;s Playground
+                </div>
+                <ThemeSwitcher/>
+            </nav>
+
+            {/* Mobile Top Navbar */}
+            <div className="flex md:hidden fixed bottom-0 z-50 w-full items-center justify-around border-t border-border bg-background/90 px-4 py-3 backdrop-blur-sm ">
+                {navLinks.map((link, index) => {
+                    const isActivePath = activeIndex === index;
+                    const isHoveredItem = isHovered === index;
+
+                    return (
+                        <Link
+                            key={index}
+                            href={link.href}
+                            title={link.name}
+                            onMouseEnter={() => setIsHovered(index)}
+                            onMouseLeave={() => setIsHovered(null)}
+                            className="relative flex flex-col items-center gap-1 rounded-xl px-5 py-2"
+                        >
+                            {isActivePath && (
+                                <motion.div
+                                    layoutId="nav-active-mobile"
+                                    className="absolute inset-0 rounded-xl bg-foreground"
+                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                />
+                            )}
+                            <AnimatePresence>
+                                {isHoveredItem && !isActivePath && (
+                                    <motion.div
+                                        layoutId="nav-hover-mobile"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.15 }}
+                                        className="absolute inset-0 rounded-xl bg-foreground/10"
+                                    />
+                                )}
+                            </AnimatePresence>
+                            <span className={`relative z-10 transition-colors duration-150 ${isActivePath ? "text-background" : "text-foreground"}`}>
+                                {link.icon}
+                            </span>
+                            <span className={`relative z-10 text-[10px] font-medium transition-colors duration-150 ${isActivePath ? "text-background" : "text-muted-foreground"}`}>
+                                {link.name}
+                            </span>
+                        </Link>
+                    );
+                })}
+            </div>
         </>
     );
 };
