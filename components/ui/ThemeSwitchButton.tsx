@@ -9,6 +9,7 @@ export function ThemeSwitcher() {
 
     return (
         <motion.button
+            type="button"
             whileHover={{ scale: 1.1 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
             onClick={() => setTheme(isDark ? "light" : "dark")}
