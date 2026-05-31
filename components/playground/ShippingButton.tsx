@@ -19,19 +19,19 @@ const ShippingButton = () => {
     const isDark = theme === "dark";
 
     const sequence: AnimationSequence = [
-        s(".package-icon", { translateX: -30, scale: 1.2 }, { duration: 0.3 }),
-        s(".order-text", { translateX: -100, opacity: 0 }, { duration: 0.3, at: "-20" }),
+        s(".package-icon", { translateX: -30 }, { duration: 0.4 }),
+        s(".order-text", { translateX: -100, opacity: 0, scale: 0 }, { duration: 0.4, at: "-20" }),
         s(".truck-icon", { display: "block", opacity: 1, scale: 1.5 }, { duration: 0.5, ease: "easeInOut" }),
         s(".package-icon", { translateX: 20, scale: 0, opacity: 0 }, { duration: 0.4 }),
         s(".truck-icon", { translateX: 250, color: "var(--color-foreground)", scale: 2 }, { duration: 0.9 }),
         s(".truck-icon", { y: [0, -2, 0, -2, 0] }, { duration: 0.1, at: "-20" }),
-        s(".shipped-text", { display: "flex", opacity: [0, 1], translateX: [-100, 0] }, { duration: 0.9, at: "+1" }),
+        s(".shipped-text", { display: "flex", opacity: [0, 1], translateX: [-100, 0] }, { duration: 0.9, at: "+1.4" }),
     ]
 
     const resetSequence: AnimationSequence = [
         s(".shipped-text", { opacity: 0, translateX: 250, display: "none" }, { duration: 0.5 }),
         s(".shipped-text", { opacity: 0, translateX: 0, display: "none" }, { duration: 0.2 }),
-        s(".order-text", { opacity: 1, translateX: 0 }, { duration: 0.3 }),
+        s(".order-text", { opacity: 1, translateX: 0, scale: 1 }, { duration: 0.3 }),
         s(".package-icon", { scale: 1, opacity: 1, translateX: 0 }, { duration: 0.3, at: "<" }),
         s(".truck-icon", { opacity: 0, translateX: 0, scale: 1, display: "none" }, { duration: 0, at: "<" }),
         s(".main", { translateX: 0 }, { duration: 0.3, at: "<" }),
@@ -58,9 +58,8 @@ const ShippingButton = () => {
                 event.preventDefault();
                 startAnimation();
             }}
-            style={{ touchAction: "manipulation" }}
             className={cn(
-                "relative w-70 h-25 flex items-center justify-center gap-2",
+                "relative w-70 h-25 flex items-center justify-center gap-2 scale-70",
                 "bg-card hover:bg-accent text-foreground border border-border",
                 "px-4 py-2 rounded-full cursor-pointer overflow-hidden",
                 `${isDark ? "shadow-[0_3px_10px_rgb(255,255,255,0.2)]" : "shadow-[0_3px_10px_rgb(0,0,0,0.2)]"}`
@@ -68,9 +67,6 @@ const ShippingButton = () => {
         >
             <motion.div
                 className="main flex items-center gap-4"
-                style={{
-                    translateX: 0,
-                }}
             >
                 <motion.div
                     style={{
@@ -86,9 +82,9 @@ const ShippingButton = () => {
                         display: "none",
                         opacity: 0,
                         scale: 1,
-                        color: "var(--color-foreground)",
+                        x: -20,
                     }}
-                    className="truck-icon z-20"
+                    className="truck-icon z-20 text-foreground"
                 >
                     <Truck size={30} />
                 </motion.div>
