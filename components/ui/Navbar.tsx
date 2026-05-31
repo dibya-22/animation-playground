@@ -70,9 +70,9 @@ const Navbar = () => {
 
                                     <span
                                         className={`relative z-10 transition-colors duration-150 ${isActivePath
-                                                ? "text-background"
-                                                : "text-foreground"
-                                            }`}
+                                                    ? "text-background"
+                                                    : "text-foreground"
+                                                }`}
                                     >
                                         {link.icon}
                                     </span>
@@ -108,7 +108,7 @@ const Navbar = () => {
                             title={link.name}
                             onMouseEnter={() => setIsHovered(index)}
                             onMouseLeave={() => setIsHovered(null)}
-                            className="relative flex flex-col items-center gap-1 rounded-xl px-5 py-2"
+                            className="relative flex flex-col items-center gap-1 rounded-xl px-5 py-2 w-1/3"
                         >
                             {isActivePath && (
                                 <motion.div
