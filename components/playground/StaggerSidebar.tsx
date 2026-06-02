@@ -73,7 +73,7 @@ export default function SidebarLayout() {
                             <AnimatePresence>
                                 {active === label && (
                                     <motion.div
-                                        layoutId="nav-hover"
+                                        layoutId="staggering-sidebar-nav-hover"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
