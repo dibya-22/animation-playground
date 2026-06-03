@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Package, Truck } from "lucide-react"
 import { motion, useAnimate } from "motion/react"
 import { type AnimationSequence } from "motion/react"
@@ -17,6 +17,11 @@ const ShippingButton = () => {
     const [scope, animate] = useAnimate();
     const { theme } = useTheme();
     const isDark = theme === "dark";
+
+    const [mounted, setMounted] = useState(false);
+    useLayoutEffect(() => {
+        (() => setMounted(true))();
+    }, []);
 
     const sequence: AnimationSequence = [
         s(".package-icon", { translateX: -30 }, { duration: 0.4 }),
@@ -62,7 +67,7 @@ const ShippingButton = () => {
                 "relative w-70 h-25 flex items-center justify-center gap-2 scale-70",
                 "bg-card hover:bg-accent text-foreground border border-border",
                 "px-4 py-2 rounded-full cursor-pointer overflow-hidden",
-                `${isDark ? "shadow-[0_3px_10px_rgb(255,255,255,0.2)]" : "shadow-[0_3px_10px_rgb(0,0,0,0.2)]"}`
+                `${mounted && isDark ? "shadow-[0_3px_10px_rgb(255,255,255,0.2)]" : "shadow-[0_3px_10px_rgb(0,0,0,0.2)]"}`
             )}
         >
             <motion.div
