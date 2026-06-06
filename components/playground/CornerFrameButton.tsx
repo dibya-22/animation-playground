@@ -2,7 +2,6 @@
 import { cn } from "@/lib/utils"
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
-import { useTheme } from "next-themes";
 
 type CornerPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -58,8 +57,6 @@ const Corner = ({ className, position, active = false, hovered = false }: Corner
 };
 
 const CornerFrameButton = () => {
-    const { theme } = useTheme();
-    const isDark = theme === "dark";
     const [hovered, setHovered] = useState(false);
     const [active, setActive] = useState(false)
     const activeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -93,10 +90,9 @@ const CornerFrameButton = () => {
             onMouseLeave={() => setHovered(false)}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            style={{ background: "var(--stripe-bg)" }}
             className={cn(
-                "relative overflow-visible text-foreground px-10 py-5 cursor-pointer m-5 ",
-                (isDark ? "bg-[repeating-linear-gradient(-60deg,transparent_0px,transparent_8px,rgba(255,255,255,0.08)_8px,rgba(255,255,255,0.08)_10px)]" :
-                    "bg-[repeating-linear-gradient(-60deg,transparent_0px,transparent_8px,rgba(0,0,0,0.08)_8px,rgba(0,0,0,0.08)_10px)]"),
+                "relative overflow-visible text-foreground px-10 py-5 cursor-pointer m-5",
             )}
         >
             <motion.span

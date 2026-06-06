@@ -28,6 +28,12 @@
 
   --invert: 0;
 
+  --stripe-bg: repeating-linear-gradient(-60deg,
+      transparent 0px,
+      transparent 8px,
+      rgba(0, 0, 0, 0.08) 8px,
+      rgba(0, 0, 0, 0.08) 10px);
+
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
@@ -59,10 +65,22 @@
 
   --invert: 1;
 
+  --stripe-bg: repeating-linear-gradient(-60deg,
+      transparent 0px,
+      transparent 8px,
+      rgba(255, 255, 255, 0.08) 8px,
+      rgba(255, 255, 255, 0.08) 10px);
+
   --button-shadow: 0 3px 10px rgb(255, 255, 255, 0.2);
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  body { background: var(--color-background); color: var(--color-foreground); }
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
 }
