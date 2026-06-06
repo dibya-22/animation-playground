@@ -116,40 +116,41 @@ const ResizableFolder = () => {
     const [appColor, setAppColor] = useState<"mono" | "color">("mono");
     const apps = [
         {
+            name: "YouTube",
+            icon: `/app-image/youtube_${appColor}.png`,
+        },
+
+        {
             name: "Google",
             icon: `/app-image/google_${appColor}.png`,
         },
         {
-            name: "YouTube",
-            icon: `/app-image/youtube_${appColor}.png`,
+            name: "Twitter",
+            icon: `/app-image/twitter_${appColor}.png`,
         },
         {
             name: "Facebook",
             icon: `/app-image/facebook_${appColor}.png`,
         },
         {
-            name: "WhatsApp",
+            name: "Whatsapp",
             icon: `/app-image/whatsapp_${appColor}.png`,
         },
         {
-            name: "Google",
-            icon: `/app-image/google_${appColor}.png`,
+            name: "Reddit",
+            icon: `/app-image/reddit_${appColor}.png`,
         },
         {
-            name: "YouTube",
-            icon: `/app-image/youtube_${appColor}.png`,
+            name: "Pinterest",
+            icon: `/app-image/pinterest_${appColor}.png`,
         },
         {
-            name: "Facebook",
-            icon: `/app-image/facebook_${appColor}.png`,
+            name: "PlayStore",
+            icon: `/app-image/playstore_${appColor}.png`,
         },
         {
-            name: "WhatsApp",
-            icon: `/app-image/whatsapp_${appColor}.png`,
-        },
-        {
-            name: "Google",
-            icon: `/app-image/google_${appColor}.png`,
+            name: "Spotify",
+            icon: `/app-image/spotify_${appColor}.png`,
         },
     ]
 
@@ -163,12 +164,59 @@ const ResizableFolder = () => {
             case "3x3": appNums = 9; break;
         }
 
-        const displayApps = [];
-        for(let i=0; i<appNums; i++){
-            displayApps.push(apps[i])
+        if (appNums === 9) {
+            return apps.map((app, index) => (
+                <motion.div
+                    key={index}
+                    style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                    className="flex items-center justify-center"
+                >
+                    <Image
+                        src={app.icon}
+                        alt={app.name}
+                        width={size === "1x1" ? 15 : 45}
+                        height={size === "1x1" ? 15 : 45}
+                    />
+                </motion.div>
+            ))
+        } else {
+            const firstTwoApps = [...apps.slice(0, 2).map((app, index) => (
+                <motion.div
+                    key={index}
+                    style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                    className="flex items-center justify-center"
+                >
+                    <Image
+                        src={app.icon}
+                        alt={app.name}
+                        width={size === "1x1" ? 15 : 45}
+                        height={size === "1x1" ? 15 : 45}
+                    />
+                </motion.div>
+            ))]
+            const compactApp = [...firstTwoApps]
+            compactApp.push(
+                <div
+                    className="grid grid-cols-2 grid-rows-2 gap-1"
+                >
+                    {apps.slice(2, 6).map((app, index) => (
+                        <motion.div
+                            key={index+2}
+                            style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                            className="flex items-center justify-center"
+                        >
+                            <Image
+                                src={app.icon}
+                                alt={app.name}
+                                width={22}
+                                height={22}
+                            />
+                        </motion.div>
+                    ))}
+                </div>
+            )
+            return compactApp
         }
-
-        return displayApps
     }
 
     return (
@@ -212,20 +260,7 @@ const ResizableFolder = () => {
                     gridToCSSGrid(size)
                 )}
             >
-                {getApps(size).map((app, index) => (
-                    <motion.div
-                        key={index}
-                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                        className="flex items-center justify-center"
-                    >
-                        <Image
-                            src={app.icon}
-                            alt={app.name}
-                            width={size === "1x1" ? 15 : 45}
-                            height={size === "1x1" ? 15 : 45}
-                        />
-                    </motion.div>
-                ))}
+                {getApps(size)}
 
                 <svg
                     onPointerDown={onPointerDown}
