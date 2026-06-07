@@ -18,7 +18,27 @@ right = 1x3
 bottom = 3x1
 expand = 3x3
 */
+type AppProp = {
+    name: string;
+    icon: string;
+}
+const AppIcon = ({ app, size, index, filterStyle }: { app: AppProp; size: number; index: number; filterStyle: string }) => (
+    <motion.div
+        key={index}
+        style={{ filter: filterStyle }}
+        className="flex items-center justify-center pointer-events-none"
+    >
+        <Image src={app.icon} alt={app.name} width={size} height={size} draggable={false}/>
+    </motion.div>
+)
 
+const CompactGrid = ({ slice, filterStyle }: { slice: AppProp[]; filterStyle: string }) => (
+    <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
+        {slice.map((app, index) => (
+            <AppIcon key={index} app={app} size={22} index={index} filterStyle={filterStyle}/>
+        ))}
+    </div>
+)
 
 const ResizeHandle = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
     <svg
@@ -32,7 +52,6 @@ const ResizeHandle = ({ className, ...props }: React.SVGProps<SVGSVGElement>) =>
 
 const debugMode = false;
 const ResizableFolder = () => {
-    const startPos = useRef({ x: 0, y: 0 });
     const boxRef = useRef<HTMLDivElement>(null);
 
     const [direction, setDirection] = useState<Direction>(null);
@@ -44,7 +63,6 @@ const ResizableFolder = () => {
     const [shadowVisibility, setShadowVisibility] = useState<boolean>(false)
 
     const onPointerDown = (e: React.PointerEvent) => {
-        startPos.current = { x: e.clientX, y: e.clientY };
         e.currentTarget.setPointerCapture(e.pointerId);
         if (preview) setShadowVisibility(true);
     }
@@ -172,46 +190,29 @@ const ResizableFolder = () => {
 
     const filterStyle = appColor !== "color" ? "invert(var(--invert))" : "none"
 
-    const AppIcon = ({ app, size, index }: { app: typeof apps[0]; size: number; index: number }) => (
-        <motion.div
-            key={index}
-            style={{ filter: filterStyle }}
-            className="flex items-center justify-center"
-        >
-            <Image src={app.icon} alt={app.name} width={size} height={size} />
-        </motion.div>
-    )
-
-    const CompactGrid = ({ slice }: { slice: typeof apps }) => (
-        <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
-            {slice.map((app, index) => (
-                <AppIcon key={index} app={app} size={22} index={index} />
-            ))}
-        </div>
-    )
 
     const getApps = (size: Size) => {
         if (size === "1x1") {
-            return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={15} index={i} />)
+            return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={15} index={i} filterStyle={filterStyle}/>)
         }
 
         if (size === "3x3") {
             if (appCounts <= 9) {
-                return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />)
+                return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>)
             }
             return [
-                ...apps.slice(0, 8).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />),
-                <CompactGrid key="compact" slice={apps.slice(8, 12)} />,
+                ...apps.slice(0, 8).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>),
+                <CompactGrid key="compact" slice={apps.slice(8, 12)} filterStyle={filterStyle}/>,
             ]
         }
 
         //* 3x1 / 1x3
         if (appCounts <= 3) {
-            return apps.slice(0, 3).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />)
+            return apps.slice(0, 3).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>)
         }
         return [
-            ...apps.slice(0, 2).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />),
-            <CompactGrid key="compact" slice={apps.slice(2, 6)} />,
+            ...apps.slice(0, 2).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>),
+            <CompactGrid key="compact" slice={apps.slice(2, 6)} filterStyle={filterStyle}/>,
         ]
     }
 
@@ -265,7 +266,7 @@ const ResizableFolder = () => {
             >
                 {getApps(size)}
 
-                {/* Desktop Resize Dragable Border */}
+                {/* Desktop Resize Draggable Border */}
                 <ResizeHandle className={hideInMobile} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
 
 
@@ -281,7 +282,7 @@ const ResizableFolder = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className={cn("absolute inset-0  z-20 flex items-center justify-center bg-black/40 rounded-2xl", hideInDesktop)}
+                        className={cn("fixed inset-0  z-20 flex items-center justify-center bg-black/40", hideInDesktop)}
                         onClick={() => setMobileMenuOpen(false)}
                     >
                         <motion.div
@@ -327,7 +328,7 @@ const ResizableFolder = () => {
             {/*! Setting */}
             <div className="absolute bottom-0 left-0 flex flex-col gap-1 p-2 items-start">
                 <div className={cn("text-xs font-mono font-extralight", hideInDesktop)}>Click on bold border to resize</div>
-                <div className={cn("text-xs font-mono font-extralight text-muted-foreground", hideInDesktop)}>Dragable Feture on Desktop</div>
+                <div className={cn("text-xs font-mono font-extralight text-muted-foreground", hideInDesktop)}>Draggable feature on Desktop</div>
 
                 <div className="flex items-center gap-2 text-xs font-mono font-extralight text-muted-foreground">
                     <label>App Numbers:</label>
