@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react"
+import { Minus, Plus } from "lucide-react";
 
 type Direction = "shrink" | "right" | "bottom" | "expand" | null;
 type Size = "1x1" | "1x3" | "3x1" | "3x3"
@@ -114,7 +115,7 @@ const ResizableFolder = () => {
 
 
     const [appColor, setAppColor] = useState<"mono" | "color">("mono");
-    const apps = [
+    const totalApps = [
         {
             name: "YouTube",
             icon: `/app-image/youtube_${appColor}.png`,
@@ -154,18 +155,13 @@ const ResizableFolder = () => {
         },
     ]
 
+
+    const [appCounts, setAppCounts] = useState(8)
+    const apps = Array.from({ length: appCounts }, (_, i) => totalApps[i % totalApps.length]);
+
     const getApps = (size: Size) => {
-        let appNums: number;;
-
-        switch (size) {
-            case "1x1": appNums = 9; break;
-            case "1x3": appNums = 3; break;
-            case "3x1": appNums = 3; break;
-            case "3x3": appNums = 9; break;
-        }
-
-        if (appNums === 9) {
-            return apps.map((app, index) => (
+        if (size === "1x1") {
+            return apps.slice(0, 9).map((app, index) => (
                 <motion.div
                     key={index}
                     style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
@@ -174,48 +170,97 @@ const ResizableFolder = () => {
                     <Image
                         src={app.icon}
                         alt={app.name}
-                        width={size === "1x1" ? 15 : 45}
-                        height={size === "1x1" ? 15 : 45}
+                        width={15}
+                        height={15}
                     />
                 </motion.div>
             ))
+        } else if (size === "3x3") {
+            if (appCounts <= 9) {
+                return apps.slice(0, 9).map((app, index) => (
+                    <motion.div
+                        key={index}
+                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                        className="flex items-center justify-center"
+                    >
+                        <Image
+                            src={app.icon}
+                            alt={app.name}
+                            width={45}
+                            height={45}
+                        />
+                    </motion.div>
+                ))
+            } else {
+                const firstEightApps = apps.slice(0, 8).map((app, index) => (
+                    <motion.div
+                        key={index}
+                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                        className="flex items-center justify-center"
+                    >
+                        <Image src={app.icon} alt={app.name} width={45} height={45} />
+                    </motion.div>
+                ))
+
+                const compactGrid = (
+                    <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
+                        {apps.slice(8, 12).map((app, index) => (
+                            <motion.div
+                                key={index}
+                                style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                                className="flex items-center justify-center"
+                            >
+                                <Image src={app.icon} alt={app.name} width={22} height={22} />
+                            </motion.div>
+                        ))}
+                    </div>
+                )
+
+                return [...firstEightApps, compactGrid]
+            }
         } else {
-            const firstTwoApps = [...apps.slice(0, 2).map((app, index) => (
-                <motion.div
-                    key={index}
-                    style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                    className="flex items-center justify-center"
-                >
-                    <Image
-                        src={app.icon}
-                        alt={app.name}
-                        width={size === "1x1" ? 15 : 45}
-                        height={size === "1x1" ? 15 : 45}
-                    />
-                </motion.div>
-            ))]
-            const compactApp = [...firstTwoApps]
-            compactApp.push(
-                <div
-                    className="grid grid-cols-2 grid-rows-2 gap-1"
-                >
-                    {apps.slice(2, 6).map((app, index) => (
-                        <motion.div
-                            key={index+2}
-                            style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                            className="flex items-center justify-center"
-                        >
-                            <Image
-                                src={app.icon}
-                                alt={app.name}
-                                width={22}
-                                height={22}
-                            />
-                        </motion.div>
-                    ))}
-                </div>
-            )
-            return compactApp
+            if (appCounts <= 3) {
+                return apps.slice(0, 3).map((app, index) => (
+                    <motion.div
+                        key={index}
+                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                        className="flex items-center justify-center"
+                    >
+                        <Image
+                            src={app.icon}
+                            alt={app.name}
+                            width={45}
+                            height={45}
+                        />
+                    </motion.div>
+                ))
+            } else {
+                const firstTwoApps = apps.slice(0, 2).map((app, index) => (
+                    <motion.div
+                        key={index}
+                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                        className="flex items-center justify-center"
+                    >
+                        <Image src={app.icon} alt={app.name} width={45} height={45} />
+                    </motion.div>
+                ))
+
+                const compactGrid = (
+                    <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
+                        {apps.slice(2, 6).map((app, index) => (
+                            <motion.div
+                                key={index + 2}
+                                style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
+                                className="flex items-center justify-center"
+                            >
+                                <Image src={app.icon} alt={app.name} width={22} height={22} />
+                            </motion.div>
+                        ))}
+                    </div>
+                )
+
+                return [...firstTwoApps, compactGrid]
+            }
         }
     }
 
@@ -283,6 +328,28 @@ const ResizableFolder = () => {
             </motion.div>
 
             {/*! Setting */}
+            <div className="absolute bottom-0 left-0 flex gap-1 p-2 items-start">
+                <div className="flex items-center gap-2 text-xs font-mono font-extralight text-muted-foreground">
+                    <label>App Numbers:</label>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setAppCounts(appCounts - 1)}
+                            disabled={appCounts <= 1}
+                            className="flex items-center justify-center w-5 h-5 rounded-full border border-muted-foreground/30 hover:bg-muted-foreground/10 disabled:bg-muted-foreground/50 active:scale-95 disabled:active:scale-100 cursor-pointer"
+                        >
+                            <Minus size={10} />
+                        </button>
+                        <span className="w-5 text-center">{appCounts}</span>
+                        <button
+                            onClick={() => setAppCounts(appCounts + 1)}
+                            disabled={appCounts >= 15}
+                            className="flex items-center justify-center w-5 h-5 rounded-full border border-muted-foreground/30 hover:bg-muted-foreground/10 disabled:bg-muted-foreground/50 active:scale-95 disabled:active:scale-100 cursor-pointer"
+                        >
+                            <Plus size={10} />
+                        </button>
+                    </div>
+                </div>
+            </div>
             <div className="absolute bottom-0 right-0 flex flex-col gap-1 p-2 items-start">
                 <div className="flex items-center gap-1">
                     <label className="text-xs font-mono font-extralight text-muted-foreground">Size Preview: </label>
