@@ -159,109 +159,49 @@ const ResizableFolder = () => {
     const [appCounts, setAppCounts] = useState(8)
     const apps = Array.from({ length: appCounts }, (_, i) => totalApps[i % totalApps.length]);
 
+    const filterStyle = appColor !== "color" ? "invert(var(--invert))" : "none"
+
+    const AppIcon = ({ app, size, index }: { app: typeof apps[0]; size: number; index: number }) => (
+        <motion.div
+            key={index}
+            style={{ filter: filterStyle }}
+            className="flex items-center justify-center"
+        >
+            <Image src={app.icon} alt={app.name} width={size} height={size} />
+        </motion.div>
+    )
+
+    const CompactGrid = ({ slice }: { slice: typeof apps }) => (
+        <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
+            {slice.map((app, index) => (
+                <AppIcon key={index} app={app} size={22} index={index} />
+            ))}
+        </div>
+    )
+
     const getApps = (size: Size) => {
         if (size === "1x1") {
-            return apps.slice(0, 9).map((app, index) => (
-                <motion.div
-                    key={index}
-                    style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                    className="flex items-center justify-center"
-                >
-                    <Image
-                        src={app.icon}
-                        alt={app.name}
-                        width={15}
-                        height={15}
-                    />
-                </motion.div>
-            ))
-        } else if (size === "3x3") {
-            if (appCounts <= 9) {
-                return apps.slice(0, 9).map((app, index) => (
-                    <motion.div
-                        key={index}
-                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                        className="flex items-center justify-center"
-                    >
-                        <Image
-                            src={app.icon}
-                            alt={app.name}
-                            width={45}
-                            height={45}
-                        />
-                    </motion.div>
-                ))
-            } else {
-                const firstEightApps = apps.slice(0, 8).map((app, index) => (
-                    <motion.div
-                        key={index}
-                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                        className="flex items-center justify-center"
-                    >
-                        <Image src={app.icon} alt={app.name} width={45} height={45} />
-                    </motion.div>
-                ))
-
-                const compactGrid = (
-                    <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
-                        {apps.slice(8, 12).map((app, index) => (
-                            <motion.div
-                                key={index}
-                                style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                                className="flex items-center justify-center"
-                            >
-                                <Image src={app.icon} alt={app.name} width={22} height={22} />
-                            </motion.div>
-                        ))}
-                    </div>
-                )
-
-                return [...firstEightApps, compactGrid]
-            }
-        } else {
-            if (appCounts <= 3) {
-                return apps.slice(0, 3).map((app, index) => (
-                    <motion.div
-                        key={index}
-                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                        className="flex items-center justify-center"
-                    >
-                        <Image
-                            src={app.icon}
-                            alt={app.name}
-                            width={45}
-                            height={45}
-                        />
-                    </motion.div>
-                ))
-            } else {
-                const firstTwoApps = apps.slice(0, 2).map((app, index) => (
-                    <motion.div
-                        key={index}
-                        style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                        className="flex items-center justify-center"
-                    >
-                        <Image src={app.icon} alt={app.name} width={45} height={45} />
-                    </motion.div>
-                ))
-
-                const compactGrid = (
-                    <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
-                        {apps.slice(2, 6).map((app, index) => (
-                            <motion.div
-                                key={index + 2}
-                                style={{ filter: appColor !== "color" ? "invert(var(--invert))" : "none" }}
-                                className="flex items-center justify-center"
-                            >
-                                <Image src={app.icon} alt={app.name} width={22} height={22} />
-                            </motion.div>
-                        ))}
-                    </div>
-                )
-
-                return [...firstTwoApps, compactGrid]
-            }
+            return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={15} index={i} />)
         }
+
+        if (size === "3x3") {
+            if (appCounts <= 9) {
+                return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />)
+            }
+            return [
+                ...apps.slice(0, 8).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />),
+                <CompactGrid key="compact" slice={apps.slice(8, 12)} />,
+            ]
+        }
+
+        //* 3x1 / 1x3
+        if (appCounts <= 3) {
+            return apps.slice(0, 3).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />)
+        }
+        return [
+            ...apps.slice(0, 2).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} />),
+            <CompactGrid key="compact" slice={apps.slice(2, 6)} />,
+        ]
     }
 
     return (
