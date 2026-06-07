@@ -2,12 +2,14 @@
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react"
 import { Minus, Plus } from "lucide-react";
 
 type Direction = "shrink" | "right" | "bottom" | "expand" | null;
-type Size = "1x1" | "1x3" | "3x1" | "3x3"
+type Size = "1x1" | "1x3" | "3x1" | "3x3";
+const hideInMobile = "hidden md:flex"
+const hideInDesktop = "flex md:hidden"
 
 /*
 ?Sizes
@@ -16,6 +18,17 @@ right = 1x3
 bottom = 3x1
 expand = 3x3
 */
+
+
+const ResizeHandle = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        width="16" height="16" viewBox="0 0 16 16" fill="none"
+        className={cn("absolute bottom-0 right-0 cursor-se-resize", className)}
+        {...props}
+    >
+        <path d="M16 2 Q14 14 2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-primary" />
+    </svg>
+)
 
 const debugMode = false;
 const ResizableFolder = () => {
@@ -79,9 +92,7 @@ const ResizableFolder = () => {
         }
     };
 
-    useEffect(() => {
-        console.log(direction);
-    }, [direction])
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
 
     function directionToGrid(direction: Direction) {
@@ -230,7 +241,10 @@ const ResizableFolder = () => {
                         visibility: shadowVisibility ? "visible" : "hidden"
                     }}
                     animate={direction ? gridToValue(directionToGrid(direction)) : gridToValue(shadowSize)}
-                    className="absolute bg-foreground z-10 rounded-2xl opacity-20"
+                    className={cn(
+                        "absolute bg-foreground z-10 rounded-2xl opacity-20",
+                        hideInMobile
+                    )}
                 />}
             </AnimatePresence>
 
@@ -238,37 +252,83 @@ const ResizableFolder = () => {
             <motion.div
                 ref={boxRef}
                 animate={gridToValue(!preview && direction ? directionToGrid(direction) : size)}
+                transition={{
+                    duration: 0.3,
+                    ease: "easeInOut"
+                }}
                 className={cn(
                     "relative w-20 h-20 rounded-2xl p-3",
                     "bg-primary-foreground border border-border",
-                    "grid gap-2",
+                    "grid gap-2 select-none",
                     gridToCSSGrid(size)
                 )}
             >
                 {getApps(size)}
 
-                <svg
-                    onPointerDown={onPointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerUp={onPointerUp}
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    className="absolute bottom-0 right-0 cursor-se-resize"
-                >
-                    <path
-                        d="M16 2 Q14 14 2 16"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        className="text-primary"
-                    />
-                </svg>
+                {/* Desktop Resize Dragable Border */}
+                <ResizeHandle className={hideInMobile} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
+
+
+                {/* Mobile Resize Clickable Border */}
+                <ResizeHandle className={hideInDesktop} onClick={() => setMobileMenuOpen(true)} />
+
             </motion.div>
 
+            {/* Mobile Resizing Menu */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className={cn("absolute inset-0  z-20 flex items-center justify-center bg-black/40 rounded-2xl", hideInDesktop)}
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-background border border-border rounded-2xl p-3"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <p className="text-[10px] font-mono text-foreground mb-2">resize</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(["1x1", "1x3", "3x1", "3x3"] as Size[]).map(s => (
+                                    <button
+                                        key={s}
+                                        onClick={() => { setSize(s); setMobileMenuOpen(false) }}
+                                        className={cn(
+                                            "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors",
+                                            size === s
+                                                ? "border-foreground bg-background"
+                                                : "border-border bg-muted"
+                                        )}
+                                    >
+                                        <div
+                                            className="grid gap-0.5"
+                                            style={{
+                                                gridTemplateColumns: `repeat(${s[2]}, 10px)`,
+                                                gridTemplateRows: `repeat(${s[0]}, 10px)`,
+                                            }}
+                                        >
+                                            {Array.from({ length: Number(s[0]) * Number(s[2]) }).map((_, i) => (
+                                                <div key={i} className="w-2.5 h-2.5 rounded-sm bg-muted-foreground/40" />
+                                            ))}
+                                        </div>
+                                        <span className="text-[9px] font-mono text-foreground">{s}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/*! Setting */}
-            <div className="absolute bottom-0 left-0 flex gap-1 p-2 items-start">
+            <div className="absolute bottom-0 left-0 flex flex-col gap-1 p-2 items-start">
+                <div className={cn("text-xs font-mono font-extralight", hideInDesktop)}>Click on bold border to resize</div>
+                <div className={cn("text-xs font-mono font-extralight text-muted-foreground", hideInDesktop)}>Dragable Feture on Desktop</div>
+
                 <div className="flex items-center gap-2 text-xs font-mono font-extralight text-muted-foreground">
                     <label>App Numbers:</label>
                     <div className="flex items-center gap-1">
@@ -291,7 +351,7 @@ const ResizableFolder = () => {
                 </div>
             </div>
             <div className="absolute bottom-0 right-0 flex flex-col gap-1 p-2 items-start">
-                <div className="flex items-center gap-1">
+                <div className={cn("items-center gap-1", hideInMobile)}>
                     <label className="text-xs font-mono font-extralight text-muted-foreground">Size Preview: </label>
                     <motion.button
                         onClick={() => setPreview(p => !p)}
