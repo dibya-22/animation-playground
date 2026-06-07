@@ -11,6 +11,7 @@ type Size = "1x1" | "1x3" | "3x1" | "3x3";
 const hideInMobile = "hidden md:flex"
 const hideInDesktop = "flex md:hidden"
 
+//Todo: Save values on local storage
 /*
 ?Sizes
 shrink = 1x1
