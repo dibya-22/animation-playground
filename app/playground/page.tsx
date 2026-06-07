@@ -2,7 +2,7 @@ import CornerFrameButton from "@/components/playground/CornerFrameButton";
 import ResizableFolder from "@/components/playground/ResizableFolder";
 import ShippingButton from "@/components/playground/ShippingButton";
 import StaggerSidebar from "@/components/playground/StaggerSidebar";
-import { BentoCell, BentoCell4, BentoGrid, BentoGrid4 } from "@/components/ui/BentoGrid";
+import { BentoCell4, BentoGrid4 } from "@/components/ui/BentoGrid";
 
 const Playground = () => {
     return (
@@ -14,7 +14,7 @@ const Playground = () => {
                     <BentoCell4 span={1} label="Coming Soon..."><div className="bg-secondary w-full h-40"></div></BentoCell4>
                 </div>
                 <BentoCell4 span={3} label="Staggering Sidebar"><StaggerSidebar /></BentoCell4>
-                <BentoCell4 span={1} label="Resizable Folder (Unfinished)"><ResizableFolder /></BentoCell4>
+                <BentoCell4 span={1} label="Resizable Folder"><ResizableFolder /></BentoCell4>
             </BentoGrid4>
         </div>
     )
