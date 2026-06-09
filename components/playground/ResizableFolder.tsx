@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react"
 import { Minus, Plus } from "lucide-react";
 
@@ -11,32 +11,29 @@ type Size = "1x1" | "1x3" | "3x1" | "3x3";
 const hideInMobile = "hidden md:flex"
 const hideInDesktop = "flex md:hidden"
 
-//Todo: Save values on local storage
-/*
-?Sizes
-shrink = 1x1
-right = 1x3
-bottom = 3x1
-expand = 3x3
-*/
 type AppProp = {
     name: string;
     icon: string;
 }
+
 const AppIcon = ({ app, size, index, filterStyle }: { app: AppProp; size: number; index: number; filterStyle: string }) => (
     <motion.div
         key={index}
         style={{ filter: filterStyle }}
         className="flex items-center justify-center pointer-events-none"
     >
-        <Image src={app.icon} alt={app.name} width={size} height={size} draggable={false}/>
+        <Image src={app.icon} alt={app.name} width={size} height={size} draggable={false} />
     </motion.div>
 )
 
-const CompactGrid = ({ slice, filterStyle }: { slice: AppProp[]; filterStyle: string }) => (
-    <div key="compact" className="grid grid-cols-2 grid-rows-2 gap-1">
+const CompactGrid = ({ slice, filterStyle, onClick }: { slice: AppProp[]; filterStyle: string; onClick: () => void; }) => (
+    <div
+        key="compact"
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        className="grid grid-cols-2 grid-rows-2 gap-1"
+    >
         {slice.map((app, index) => (
-            <AppIcon key={index} app={app} size={22} index={index} filterStyle={filterStyle}/>
+            <AppIcon key={index} app={app} size={22} index={index} filterStyle={filterStyle} />
         ))}
     </div>
 )
@@ -51,42 +48,57 @@ const ResizeHandle = ({ className, ...props }: React.SVGProps<SVGSVGElement>) =>
     </svg>
 )
 
+function getSaved() {
+    if (typeof window === "undefined") return null;
+    const saved = localStorage.getItem("resizable-folder");
+    return saved ? JSON.parse(saved) : null;
+}
+
 const debugMode = false;
+
 const ResizableFolder = () => {
     const boxRef = useRef<HTMLDivElement>(null);
+    const didDragRef = useRef(false);
 
     const [direction, setDirection] = useState<Direction>(null);
+    const [size, setSize] = useState<Size>(() => getSaved()?.size ?? "1x1");
+    const [shadowSize, setShadowSize] = useState<Size>(() => getSaved()?.size ?? "1x1");
+    const [preview, setPreview] = useState<boolean>(() => getSaved()?.preview ?? true);
+    const [shadowVisibility, setShadowVisibility] = useState<boolean>(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [fullAppView, setFullAppView] = useState(false);
+    const [appColor, setAppColor] = useState<"mono" | "color">(() => getSaved()?.appColor ?? "mono");
+    const [appCounts, setAppCounts] = useState<number>(() => getSaved()?.appCounts ?? 8);
+    const [debugPos, setDebugPos] = useState({ relX: 0, relY: 0 });
 
-    const [size, setSize] = useState<Size>("1x1");
-    const [shadowSize, setShadowSize] = useState<Size>("1x1");
-
-    const [preview, setPreview] = useState<boolean>(true)
-    const [shadowVisibility, setShadowVisibility] = useState<boolean>(false)
+    // Save to localStorage on change
+    useEffect(() => {
+        localStorage.setItem("resizable-folder", JSON.stringify({
+            size, appCounts, appColor, preview
+        }));
+    }, [size, appCounts, appColor, preview]);
 
     const onPointerDown = (e: React.PointerEvent) => {
         e.currentTarget.setPointerCapture(e.pointerId);
+        didDragRef.current = false;
         if (preview) setShadowVisibility(true);
     }
 
-    const [debugPos, setDebugPos] = useState({ relX: 0, relY: 0 })
-
     const onPointerMove = (e: React.PointerEvent) => {
         if (e.buttons !== 1) return;
+        didDragRef.current = true;
         if (!boxRef.current) return;
 
         const rect = boxRef.current.getBoundingClientRect();
-
         const relX = e.clientX - rect.left;
         const relY = e.clientY - rect.top;
 
-        setDebugPos({ relX: Math.round(relX), relY: Math.round(relY) });
+        if (debugMode) setDebugPos({ relX: Math.round(relX), relY: Math.round(relY) });
 
         const CELL = 80;
-
         const col = relX < CELL ? 1 : relX < CELL * 2 ? 2 : 3;
         const row = relY < CELL ? 1 : relY < CELL * 2 ? 2 : 3;
-
-        const cellIndex = (row - 1) * 3 + col; // 1–9
+        const cellIndex = (row - 1) * 3 + col;
 
         let newDirection: Direction;
         if (cellIndex === 1) newDirection = "shrink";
@@ -104,17 +116,13 @@ const ResizableFolder = () => {
 
     const onPointerUp = () => {
         setDirection(null);
-
         if (preview) {
             setShadowVisibility(false);
             setSize(shadowSize);
         }
     };
 
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-
-    function directionToGrid(direction: Direction) {
+    function directionToGrid(direction: Direction): Size {
         switch (direction) {
             case "shrink": return "1x1"
             case "right": return "1x3"
@@ -142,200 +150,223 @@ const ResizableFolder = () => {
         }
     }
 
+    const totalApps: AppProp[] = [
+        { name: "YouTube", icon: `/app-image/youtube_${appColor}.png` },
+        { name: "Google", icon: `/app-image/google_${appColor}.png` },
+        { name: "Twitter", icon: `/app-image/twitter_${appColor}.png` },
+        { name: "Facebook", icon: `/app-image/facebook_${appColor}.png` },
+        { name: "Whatsapp", icon: `/app-image/whatsapp_${appColor}.png` },
+        { name: "Reddit", icon: `/app-image/reddit_${appColor}.png` },
+        { name: "Pinterest", icon: `/app-image/pinterest_${appColor}.png` },
+        { name: "PlayStore", icon: `/app-image/playstore_${appColor}.png` },
+        { name: "Spotify", icon: `/app-image/spotify_${appColor}.png` },
+    ];
 
-
-    const [appColor, setAppColor] = useState<"mono" | "color">("mono");
-    const totalApps = [
-        {
-            name: "YouTube",
-            icon: `/app-image/youtube_${appColor}.png`,
-        },
-
-        {
-            name: "Google",
-            icon: `/app-image/google_${appColor}.png`,
-        },
-        {
-            name: "Twitter",
-            icon: `/app-image/twitter_${appColor}.png`,
-        },
-        {
-            name: "Facebook",
-            icon: `/app-image/facebook_${appColor}.png`,
-        },
-        {
-            name: "Whatsapp",
-            icon: `/app-image/whatsapp_${appColor}.png`,
-        },
-        {
-            name: "Reddit",
-            icon: `/app-image/reddit_${appColor}.png`,
-        },
-        {
-            name: "Pinterest",
-            icon: `/app-image/pinterest_${appColor}.png`,
-        },
-        {
-            name: "PlayStore",
-            icon: `/app-image/playstore_${appColor}.png`,
-        },
-        {
-            name: "Spotify",
-            icon: `/app-image/spotify_${appColor}.png`,
-        },
-    ]
-
-
-    const [appCounts, setAppCounts] = useState(8)
     const apps = Array.from({ length: appCounts }, (_, i) => totalApps[i % totalApps.length]);
+    const filterStyle = appColor !== "color" ? "invert(var(--invert))" : "none";
 
-    const filterStyle = appColor !== "color" ? "invert(var(--invert))" : "none"
-
+    const currentSize = !preview && direction ? directionToGrid(direction) : size;
 
     const getApps = (size: Size) => {
         if (size === "1x1") {
-            return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={15} index={i} filterStyle={filterStyle}/>)
+            return apps.slice(0, 9).map((app, i) => (
+                <AppIcon key={i} app={app} size={15} index={i} filterStyle={filterStyle} />
+            ));
         }
 
         if (size === "3x3") {
             if (appCounts <= 9) {
-                return apps.slice(0, 9).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>)
+                return apps.slice(0, 9).map((app, i) => (
+                    <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle} />
+                ));
             }
             return [
-                ...apps.slice(0, 8).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>),
-                <CompactGrid key="compact" slice={apps.slice(8, 12)} filterStyle={filterStyle}/>,
-            ]
+                ...apps.slice(0, 8).map((app, i) => (
+                    <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle} />
+                )),
+                <CompactGrid key="compact" onClick={() => setFullAppView(true)} slice={apps.slice(8, 12)} filterStyle={filterStyle} />,
+            ];
         }
 
-        //* 3x1 / 1x3
+        // 3x1 / 1x3
         if (appCounts <= 3) {
-            return apps.slice(0, 3).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>)
+            return apps.slice(0, 3).map((app, i) => (
+                <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle} />
+            ));
         }
         return [
-            ...apps.slice(0, 2).map((app, i) => <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle}/>),
-            <CompactGrid key="compact" slice={apps.slice(2, 6)} filterStyle={filterStyle}/>,
-        ]
+            ...apps.slice(0, 2).map((app, i) => (
+                <AppIcon key={i} app={app} size={45} index={i} filterStyle={filterStyle} />
+            )),
+            <CompactGrid key="compact" onClick={() => setFullAppView(true)} slice={apps.slice(2, 6)} filterStyle={filterStyle} />,
+        ];
     }
 
     return (
-        <div className="relative bg-secondary w-full h-100 flex items-start py-4 px-10">
+        <div className="relative bg-secondary w-full min-h-150 flex items-start py-4 px-10">
 
-            {debugMode && <div>
-                <div className="absolute top-0 right-0 p-2 font-mono text-xs text-muted-foreground flex flex-col gap-0.5">
-                    <span>relX: {debugPos.relX}</span>
-                    <span>relY: {debugPos.relY}</span>
-                    <span>size: {size}</span>
-                    <span>shadowSize: {shadowSize}</span>
-                </div>
-                <div className="absolute top-0 left-0 w-60 h-60 my-4 mx-10 grid gap-0.5"
-                    style={{ gridTemplateColumns: "80px 1fr", gridTemplateRows: "80px 1fr" }}>
-                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground" >1x1</div>
-                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground" >1x3</div>
-                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground" >3x1</div>
-                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground" >3x3</div>
-                </div>
-            </div>}
+            {/* Folder */}
+            <AnimatePresence mode="wait">
+                {!fullAppView && (
+                    <motion.div key="folder-root" className="contents">
 
-            <AnimatePresence>
-                {preview && <motion.div
-                    style={{
-                        ...gridToValue(size),
-                        visibility: shadowVisibility ? "visible" : "hidden"
-                    }}
-                    animate={direction ? gridToValue(directionToGrid(direction)) : gridToValue(shadowSize)}
-                    className={cn(
-                        "absolute bg-foreground z-10 rounded-2xl opacity-20",
-                        hideInMobile
-                    )}
-                />}
-            </AnimatePresence>
+                        {debugMode && (
+                            <div>
+                                <div className="absolute top-0 right-0 p-2 font-mono text-xs text-muted-foreground flex flex-col gap-0.5">
+                                    <span>relX: {debugPos.relX}</span>
+                                    <span>relY: {debugPos.relY}</span>
+                                    <span>size: {size}</span>
+                                    <span>shadowSize: {shadowSize}</span>
+                                </div>
+                                <div className="absolute top-0 left-0 w-60 h-60 my-4 mx-10 grid gap-0.5"
+                                    style={{ gridTemplateColumns: "80px 1fr", gridTemplateRows: "80px 1fr" }}>
+                                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground">1x1</div>
+                                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground">1x3</div>
+                                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground">3x1</div>
+                                    <div className="rounded-lg border border-dashed border-border flex items-center justify-center text-xs font-mono text-muted-foreground">3x3</div>
+                                </div>
+                            </div>
+                        )}
 
+                        {/* Shadow */}
+                        <AnimatePresence>
+                            {preview && (
+                                <motion.div
+                                    initial={gridToValue(size)}
+                                    style={{ visibility: shadowVisibility ? "visible" : "hidden" }}
+                                    animate={direction ? gridToValue(directionToGrid(direction)) : gridToValue(shadowSize)}
+                                    className={cn("absolute bg-foreground z-10 rounded-2xl opacity-20", hideInMobile)}
+                                />
+                            )}
+                        </AnimatePresence>
 
-            <motion.div
-                ref={boxRef}
-                animate={gridToValue(!preview && direction ? directionToGrid(direction) : size)}
-                transition={{
-                    duration: 0.3,
-                    ease: "easeInOut"
-                }}
-                className={cn(
-                    "relative w-20 h-20 rounded-2xl p-3",
-                    "bg-primary-foreground border border-border",
-                    "grid gap-2 select-none",
-                    gridToCSSGrid(size)
-                )}
-            >
-                {getApps(size)}
-
-                {/* Desktop Resize Draggable Border */}
-                <ResizeHandle className={hideInMobile} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
-
-
-                {/* Mobile Resize Clickable Border */}
-                <ResizeHandle className={hideInDesktop} onClick={() => setMobileMenuOpen(true)} />
-
-            </motion.div>
-
-            {/* Mobile Resizing Menu */}
-            <AnimatePresence>
-                {mobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className={cn("fixed inset-0  z-20 flex items-center justify-center bg-black/40", hideInDesktop)}
-                        onClick={() => setMobileMenuOpen(false)}
-                    >
+                        {/* Folder Box */}
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-background border border-border rounded-2xl p-3"
-                            onClick={e => e.stopPropagation()}
+                            ref={boxRef}
+                            initial={{ opacity: 0, ...gridToValue("1x1") }}
+                            animate={{ opacity: 1, ...gridToValue(currentSize) }}
+                            exit={{ opacity: 0, ...gridToValue("1x1") }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            onPointerDown={() => { didDragRef.current = false; }}
+                            onClick={() => {
+                                if (size === "1x1" && !didDragRef.current) setFullAppView(true);
+                            }}
+                            className={cn(
+                                "relative rounded-2xl p-3",
+                                "bg-primary-foreground border border-border",
+                                "grid gap-2 select-none",
+                                gridToCSSGrid(currentSize)
+                            )}
                         >
-                            <p className="text-[10px] font-mono text-foreground mb-2">resize</p>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(["1x1", "1x3", "3x1", "3x3"] as Size[]).map(s => (
-                                    <button
-                                        key={s}
-                                        onClick={() => { setSize(s); setMobileMenuOpen(false) }}
-                                        className={cn(
-                                            "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors",
-                                            size === s
-                                                ? "border-foreground bg-background"
-                                                : "border-border bg-muted"
-                                        )}
+                            {getApps(currentSize)}
+
+                            <ResizeHandle className={hideInMobile} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
+                            <ResizeHandle className={hideInDesktop} onClick={() => setMobileMenuOpen(true)} />
+                        </motion.div>
+
+                        {/* Mobile Resize Menu */}
+                        <AnimatePresence>
+                            {mobileMenuOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className={cn("fixed inset-0 z-20 flex items-center justify-center bg-black/40", hideInDesktop)}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0.9, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.9, opacity: 0 }}
+                                        className="bg-background border border-border rounded-2xl p-3"
+                                        onClick={e => e.stopPropagation()}
                                     >
-                                        <div
-                                            className="grid gap-0.5"
-                                            style={{
-                                                gridTemplateColumns: `repeat(${s[2]}, 10px)`,
-                                                gridTemplateRows: `repeat(${s[0]}, 10px)`,
-                                            }}
-                                        >
-                                            {Array.from({ length: Number(s[0]) * Number(s[2]) }).map((_, i) => (
-                                                <div key={i} className="w-2.5 h-2.5 rounded-sm bg-muted-foreground/40" />
+                                        <p className="text-[10px] font-mono text-foreground mb-2">resize</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {(["1x1", "1x3", "3x1", "3x3"] as Size[]).map(s => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => { setSize(s); setMobileMenuOpen(false); }}
+                                                    className={cn(
+                                                        "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors",
+                                                        size === s ? "border-foreground bg-background" : "border-border bg-muted"
+                                                    )}
+                                                >
+                                                    <div
+                                                        className="grid gap-0.5"
+                                                        style={{
+                                                            gridTemplateColumns: `repeat(${s[2]}, 10px)`,
+                                                            gridTemplateRows: `repeat(${s[0]}, 10px)`,
+                                                        }}
+                                                    >
+                                                        {Array.from({ length: Number(s[0]) * Number(s[2]) }).map((_, i) => (
+                                                            <div key={i} className="w-2.5 h-2.5 rounded-sm bg-muted-foreground/40" />
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-[9px] font-mono text-foreground">{s}</span>
+                                                </button>
                                             ))}
                                         </div>
-                                        <span className="text-[9px] font-mono text-foreground">{s}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
+                                    </motion.div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/*! Setting */}
-            <div className="absolute bottom-0 left-0 flex flex-col gap-1 p-2 items-start">
+            {/* All Apps */}
+            <AnimatePresence>
+                {fullAppView && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10"
+                            onClick={() => setFullAppView(false)}
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            className={cn(
+                                "absolute top-2 left-2 w-[90%] max-h-[80vh] z-20",
+                                "grid grid-cols-4 auto-rows-max gap-6",
+                                "rounded-3xl p-8",
+                                "bg-background/95 backdrop-blur-xl",
+                                "border border-border/50 shadow-2xl",
+                                "overflow-y-auto"
+                            )}
+                        >
+                            {apps.map((app, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: index * 0.02 }}
+                                    className="flex flex-col items-center gap-2 cursor-pointer"
+                                >
+                                    <AppIcon app={app} size={48} index={index} filterStyle={filterStyle} />
+                                    <span className="text-[11px] text-center text-muted-foreground">{app.name}</span>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Settings — Bottom Left */}
+            <div className="absolute bottom-0 left-0 flex flex-col gap-1 p-2 items-start z-20">
                 <div className={cn("text-xs font-mono font-extralight", hideInDesktop)}>Click on bold border to resize</div>
                 <div className={cn("text-xs font-mono font-extralight text-muted-foreground", hideInDesktop)}>Draggable feature on Desktop</div>
-
                 <div className="flex items-center gap-2 text-xs font-mono font-extralight text-muted-foreground">
                     <label>App Numbers:</label>
                     <div className="flex items-center gap-1">
                         <button
-                            onClick={() => setAppCounts(appCounts - 1)}
+                            onClick={() => setAppCounts(c => Math.max(1, c - 1))}
                             disabled={appCounts <= 1}
                             className="flex items-center justify-center w-5 h-5 rounded-full border border-muted-foreground/30 hover:bg-muted-foreground/10 disabled:bg-muted-foreground/50 active:scale-95 disabled:active:scale-100 cursor-pointer"
                         >
@@ -343,7 +374,7 @@ const ResizableFolder = () => {
                         </button>
                         <span className="w-5 text-center">{appCounts}</span>
                         <button
-                            onClick={() => setAppCounts(appCounts + 1)}
+                            onClick={() => setAppCounts(c => Math.min(15, c + 1))}
                             disabled={appCounts >= 15}
                             className="flex items-center justify-center w-5 h-5 rounded-full border border-muted-foreground/30 hover:bg-muted-foreground/10 disabled:bg-muted-foreground/50 active:scale-95 disabled:active:scale-100 cursor-pointer"
                         >
@@ -352,7 +383,9 @@ const ResizableFolder = () => {
                     </div>
                 </div>
             </div>
-            <div className="absolute bottom-0 right-0 flex flex-col gap-1 p-2 items-start">
+
+            {/* Settings — Bottom Right */}
+            <div className="absolute bottom-0 right-0 flex flex-col gap-1 p-2 items-start z-20">
                 <div className={cn("items-center gap-1", hideInMobile)}>
                     <label className="text-xs font-mono font-extralight text-muted-foreground">Size Preview: </label>
                     <motion.button
@@ -370,10 +403,7 @@ const ResizableFolder = () => {
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                animate={{
-                                    pathLength: preview ? 1 : 0,
-                                    opacity: preview ? 1 : 0,
-                                }}
+                                animate={{ pathLength: preview ? 1 : 0, opacity: preview ? 1 : 0 }}
                                 transition={{ duration: 0.15 }}
                             />
                         </motion.svg>
@@ -382,29 +412,22 @@ const ResizableFolder = () => {
                 <div className="flex items-center gap-1">
                     <label className="text-xs font-mono font-extralight text-muted-foreground">App Color: </label>
                     <motion.button
-                        animate={{
-                            boxShadow: appColor === "mono"
-                                ? "0 0 0 2px #888"
-                                : "0 0 0 0px transparent",
-                        }}
+                        animate={{ boxShadow: appColor === "mono" ? "0 0 0 2px #888" : "0 0 0 0px transparent" }}
                         transition={{ duration: 0.15 }}
                         onClick={() => setAppColor("mono")}
                         className="w-3 h-3 rounded-sm bg-foreground cursor-pointer"
                     />
                     <motion.button
-                        animate={{
-                            boxShadow: appColor === "color"
-                                ? "0 0 0 2px #888"
-                                : "0 0 0 0px transparent",
-                        }}
+                        animate={{ boxShadow: appColor === "color" ? "0 0 0 2px #888" : "0 0 0 0px transparent" }}
                         transition={{ duration: 0.15 }}
                         onClick={() => setAppColor("color")}
                         className="w-3 h-3 rounded-sm bg-linear-to-br from-pink-500 via-yellow-400 to-cyan-400 cursor-pointer"
                     />
                 </div>
             </div>
+
         </div>
-    )
+    );
 }
 
-export default ResizableFolder
+export default ResizableFolder;
