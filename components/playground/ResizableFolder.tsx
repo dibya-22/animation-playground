@@ -60,16 +60,16 @@ const ResizableFolder = () => {
     const boxRef = useRef<HTMLDivElement>(null);
     const didDragRef = useRef(false);
 
-    const saved = getSaved();   
+    const saved = getSaved();
     const [direction, setDirection] = useState<Direction>(null);
-    const [size, setSize] = useState<Size>(() => saved.size ?? "1x1");
-    const [shadowSize, setShadowSize] = useState<Size>(() => saved.size ?? "1x1");
-    const [preview, setPreview] = useState<boolean>(() => saved.preview ?? true);
+    const [size, setSize] = useState<Size>(saved?.size ?? "1x1");
+    const [shadowSize, setShadowSize] = useState<Size>(saved?.size ?? "1x1");
+    const [preview, setPreview] = useState<boolean>(saved?.preview ?? true);
     const [shadowVisibility, setShadowVisibility] = useState<boolean>(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [fullAppView, setFullAppView] = useState(false);
-    const [appColor, setAppColor] = useState<"mono" | "color">(() => saved.appColor ?? "mono");
-    const [appCounts, setAppCounts] = useState<number>(() => saved.appCounts ?? 8);
+    const [appColor, setAppColor] = useState<"mono" | "color">(saved?.appColor ?? "mono");
+    const [appCounts, setAppCounts] = useState<number>(saved?.appCounts ?? 8);
     const [debugPos, setDebugPos] = useState({ relX: 0, relY: 0 });
 
     // Save to localStorage on change
