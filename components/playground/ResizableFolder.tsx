@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react"
 import { Minus, Plus, X } from "lucide-react";
 
