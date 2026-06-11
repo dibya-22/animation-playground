@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react"
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 
 type Direction = "shrink" | "right" | "bottom" | "expand" | null;
 type Size = "1x1" | "1x3" | "3x1" | "3x3";
@@ -60,15 +60,16 @@ const ResizableFolder = () => {
     const boxRef = useRef<HTMLDivElement>(null);
     const didDragRef = useRef(false);
 
+    const saved = getSaved();
     const [direction, setDirection] = useState<Direction>(null);
-    const [size, setSize] = useState<Size>(() => getSaved()?.size ?? "1x1");
-    const [shadowSize, setShadowSize] = useState<Size>(() => getSaved()?.size ?? "1x1");
-    const [preview, setPreview] = useState<boolean>(() => getSaved()?.preview ?? true);
+    const [size, setSize] = useState<Size>(saved?.size ?? "1x1");
+    const [shadowSize, setShadowSize] = useState<Size>(saved?.size ?? "1x1");
+    const [preview, setPreview] = useState<boolean>(saved?.preview ?? true);
     const [shadowVisibility, setShadowVisibility] = useState<boolean>(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [fullAppView, setFullAppView] = useState(false);
-    const [appColor, setAppColor] = useState<"mono" | "color">(() => getSaved()?.appColor ?? "mono");
-    const [appCounts, setAppCounts] = useState<number>(() => getSaved()?.appCounts ?? 8);
+    const [appColor, setAppColor] = useState<"mono" | "color">(saved?.appColor ?? "mono");
+    const [appCounts, setAppCounts] = useState<number>(saved?.appCounts ?? 8);
     const [debugPos, setDebugPos] = useState({ relX: 0, relY: 0 });
 
     // Save to localStorage on change
@@ -206,7 +207,7 @@ const ResizableFolder = () => {
         <div className="relative bg-secondary w-full min-h-150 flex items-start py-4 px-10">
 
             {/* Folder */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
                 {!fullAppView && (
                     <motion.div key="folder-root" className="contents">
 
@@ -338,7 +339,7 @@ const ResizableFolder = () => {
                                 "rounded-3xl p-8",
                                 "bg-background/95 backdrop-blur-xl",
                                 "border border-border/50 shadow-2xl",
-                                "overflow-y-auto"
+                                "overflow-y-auto select-none"
                             )}
                         >
                             {apps.map((app, index) => (
@@ -353,6 +354,19 @@ const ResizableFolder = () => {
                                     <span className="text-[11px] text-center text-muted-foreground">{app.name}</span>
                                 </motion.div>
                             ))}
+                            <motion.div
+                                key="close"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: apps.length * 0.02 }}
+                                className="flex flex-col items-center gap-2 cursor-pointer"
+                                onClick={() => setFullAppView(false)}
+                            >
+                                <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
+                                    <X size={20} className="text-muted-foreground" />
+                                </div>
+                                <span className="text-[11px] text-center text-muted-foreground">Close</span>
+                            </motion.div>
                         </motion.div>
                     </>
                 )}
