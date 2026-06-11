@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react"
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 
 type Direction = "shrink" | "right" | "bottom" | "expand" | null;
 type Size = "1x1" | "1x3" | "3x1" | "3x3";
@@ -339,7 +339,7 @@ const ResizableFolder = () => {
                                 "rounded-3xl p-8",
                                 "bg-background/95 backdrop-blur-xl",
                                 "border border-border/50 shadow-2xl",
-                                "overflow-y-auto"
+                                "overflow-y-auto select-none"
                             )}
                         >
                             {apps.map((app, index) => (
@@ -354,6 +354,19 @@ const ResizableFolder = () => {
                                     <span className="text-[11px] text-center text-muted-foreground">{app.name}</span>
                                 </motion.div>
                             ))}
+                            <motion.div
+                                key="close"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: apps.length * 0.02 }}
+                                className="flex flex-col items-center gap-2 cursor-pointer"
+                                onClick={() => setFullAppView(false)}
+                            >
+                                <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
+                                    <X size={20} className="text-muted-foreground" />
+                                </div>
+                                <span className="text-[11px] text-center text-muted-foreground">Close</span>
+                            </motion.div>
                         </motion.div>
                     </>
                 )}
