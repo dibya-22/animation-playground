@@ -26,8 +26,6 @@
 
   --button-shadow: 0 3px 10px rgb(0, 0, 0, 0.2);
 
-  --invert: 0;
-
   --stripe-bg: repeating-linear-gradient(-60deg,
       transparent 0px,
       transparent 8px,
@@ -63,8 +61,6 @@
 
   --color-ring: #3a3a3a;
 
-  --invert: 1;
-
   --stripe-bg: repeating-linear-gradient(-60deg,
       transparent 0px,
       transparent 8px,
@@ -83,4 +79,7 @@
     background: var(--color-background);
     color: var(--color-foreground);
   }
+  
+  :root { --invert: 0; }
+  [data-theme="dark"] { --invert: 1; }
 }
