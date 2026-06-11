@@ -59,6 +59,7 @@ const debugMode = false;
 const ResizableFolder = () => {
     const boxRef = useRef<HTMLDivElement>(null);
     const didDragRef = useRef(false);
+    const didOpenMobileMenuRef = useRef(false);
 
     const saved = getSaved();
     const [direction, setDirection] = useState<Direction>(null);
@@ -250,6 +251,10 @@ const ResizableFolder = () => {
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                             onPointerDown={() => { didDragRef.current = false; }}
                             onClick={() => {
+                                if (didOpenMobileMenuRef.current) {
+                                    didOpenMobileMenuRef.current = false;
+                                    return;
+                                }
                                 if (size === "1x1" && !didDragRef.current) setFullAppView(true);
                             }}
                             className={cn(
@@ -261,8 +266,19 @@ const ResizableFolder = () => {
                         >
                             {getApps(currentSize)}
 
-                            <ResizeHandle className={hideInMobile} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} />
-                            <ResizeHandle className={hideInDesktop} onClick={() => setMobileMenuOpen(true)} />
+                            <ResizeHandle
+                                className={hideInMobile}
+                                onPointerDown={onPointerDown}
+                                onPointerMove={onPointerMove}
+                                onPointerUp={onPointerUp}
+                            />
+                            <ResizeHandle
+                                className={hideInDesktop}
+                                onClick={() => {
+                                    setMobileMenuOpen(true);
+                                    didOpenMobileMenuRef.current = true;
+                                }}
+                            />
                         </motion.div>
 
                         {/* Mobile Resize Menu */}
