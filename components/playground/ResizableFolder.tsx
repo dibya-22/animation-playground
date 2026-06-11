@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react"
 import { Minus, Plus, X } from "lucide-react";
 
@@ -61,17 +61,26 @@ const ResizableFolder = () => {
     const didDragRef = useRef(false);
     const didOpenMobileMenuRef = useRef(false);
 
-    const saved = getSaved();
     const [direction, setDirection] = useState<Direction>(null);
-    const [size, setSize] = useState<Size>(saved?.size ?? "1x1");
-    const [shadowSize, setShadowSize] = useState<Size>(saved?.size ?? "1x1");
-    const [preview, setPreview] = useState<boolean>(saved?.preview ?? true);
+    const [size, setSize] = useState<Size>("1x1");
+    const [shadowSize, setShadowSize] = useState<Size>("1x1");
+    const [preview, setPreview] = useState<boolean>(true);
     const [shadowVisibility, setShadowVisibility] = useState<boolean>(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [fullAppView, setFullAppView] = useState(false);
-    const [appColor, setAppColor] = useState<"mono" | "color">(saved?.appColor ?? "mono");
-    const [appCounts, setAppCounts] = useState<number>(saved?.appCounts ?? 8);
-    const [debugPos, setDebugPos] = useState({ relX: 0, relY: 0 });
+    const [appColor, setAppColor] = useState<"mono" | "color">("mono");
+    const [appCounts, setAppCounts] = useState<number>(8);
+    const [debugPos, setDebugPos] = useState({ relX: 0, relY: 0 })
+
+    useEffect(() => {
+        const saved = getSaved();
+        if (!saved) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (saved.size) { setSize(saved.size); setShadowSize(saved.size); }
+        if (saved.preview !== undefined) setPreview(saved.preview);
+        if (saved.appColor) setAppColor(saved.appColor);
+        if (saved.appCounts) setAppCounts(saved.appCounts);
+    }, []);
 
     // Save to localStorage on change
     useEffect(() => {
